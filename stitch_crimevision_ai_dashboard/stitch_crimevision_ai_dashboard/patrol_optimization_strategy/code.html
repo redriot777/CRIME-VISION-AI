@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Patrol Optimization | CrimeVision AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#859399",
+                        "secondary": "#ffb3ae",
+                        "surface-bright": "#37393e",
+                        "tertiary-fixed": "#5bffa1",
+                        "surface": "#111318",
+                        "surface-container": "#1e2024",
+                        "on-primary": "#003543",
+                        "on-tertiary-fixed": "#00210e",
+                        "on-secondary-fixed": "#410004",
+                        "surface-dim": "#111318",
+                        "inverse-surface": "#e2e2e8",
+                        "on-secondary-container": "#ffb3ad",
+                        "primary-fixed": "#b7eaff",
+                        "tertiary-fixed-dim": "#00e383",
+                        "on-tertiary": "#00391d",
+                        "surface-container-highest": "#333539",
+                        "secondary-fixed": "#ffdad7",
+                        "on-primary-container": "#00566a",
+                        "surface-container-high": "#282a2e",
+                        "inverse-primary": "#00677f",
+                        "surface-container-low": "#1a1c20",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#333539",
+                        "on-error": "#690005",
+                        "on-primary-fixed": "#001f28",
+                        "secondary-container": "#a90219",
+                        "on-surface-variant": "#bbc9cf",
+                        "on-primary-fixed-variant": "#004e60",
+                        "primary-container": "#00d1ff",
+                        "error-container": "#93000a",
+                        "on-tertiary-container": "#005b31",
+                        "surface-tint": "#4cd6ff",
+                        "outline-variant": "#3c494e",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "on-background": "#e2e2e8",
+                        "inverse-on-surface": "#2f3035",
+                        "primary-fixed-dim": "#4cd6ff",
+                        "primary": "#a4e6ff",
+                        "background": "#111318",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed-variant": "#930014",
+                        "on-secondary": "#68000b",
+                        "on-surface": "#e2e2e8",
+                        "tertiary": "#00fc92",
+                        "tertiary-container": "#00dc7f",
+                        "on-tertiary-fixed-variant": "#00522c",
+                        "surface-container-lowest": "#0c0e12"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "sidebar-width": "280px",
+                        "gutter": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "data-value": ["JetBrains Mono"],
+                        "display-lg": ["Inter"],
+                        "body-base": ["Inter"],
+                        "data-label": ["JetBrains Mono"],
+                        "headline-md-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "data-value": ["18px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-base": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400"}],
+                        "data-label": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-md-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .surface-glass {
+            background-color: rgba(26, 28, 32, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(60, 73, 78, 0.3);
+        }
+        @keyframes pulse-cyan {
+            0% { box-shadow: 0 0 0 0 rgba(164, 230, 255, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(164, 230, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(164, 230, 255, 0); }
+        }
+        .pulse-active {
+            animation: pulse-cyan 2s infinite;
+        }
+        .map-glow-line {
+            filter: drop-shadow(0 0 4px rgba(0, 252, 146, 0.8));
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3c494e; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-base overflow-hidden">
+<!-- TOP NAVIGATION SHELL -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/70 dark:bg-surface/70 backdrop-blur-xl border-b border-outline-variant/30">
+<div class="flex items-center gap-4">
+<span class="text-headline-md font-headline-md font-bold tracking-tighter text-primary dark:text-primary">CrimeVision AI</span>
+<div class="h-6 w-px bg-outline-variant/30 mx-2"></div>
+<span class="text-data-label font-data-label text-on-surface-variant">Chicago</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-primary/10 p-2 rounded-full transition-colors duration-200">schedule</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-primary/10 p-2 rounded-full transition-colors duration-200">insights</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-primary/10 p-2 rounded-full transition-colors duration-200">settings</button>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary/30">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a senior police chief officer in a high-tech tactical uniform, set against a background of glowing blue data screens. The lighting is dramatic and cool-toned, emphasizing authority and modern law enforcement technology in a futuristic command center environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKmMRvH22vfJVISBNyJblfReKmRkEHuVHP3O8iFxdn-UzMguFWY4fdDUvZtgDq6wxPvanKUXqL3fKqh8lYuWnCGWeTbJA-7G_xKQqDLqCEWJr56-aX4DY51KIspppy9lOgvbUKJ_HIfR0tWmS-KieafexRUNRtM3eFh2EB-v_IpjywwBppuZxx0wkSkfRUIm5_nz3wgaubAGwBUHLkq3b-W1Q6ZfU6ZPRqeyL8bwJGUPPYORCUvqlsOzEkb5HkQU2KDkaFyvQbk_YO"/>
+</div>
+</div>
+</header>
+<!-- SIDE NAVIGATION SHELL -->
+<aside class="fixed left-0 top-0 h-full w-[280px] z-40 flex flex-col pt-20 pb-8 bg-surface-container-low/70 dark:bg-surface-container-low/70 backdrop-blur-xl border-r border-outline-variant/30">
+<div class="px-6 mb-8">
+<div class="text-primary font-headline-md uppercase tracking-widest mb-1">COMMAND</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+<span class="text-data-label font-data-label text-on-surface-variant opacity-70">Active Session</span>
+</div>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-data-label font-data-label">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-data-label font-data-label">Live Crime Map</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">local_fire_department</span>
+<span class="text-data-label font-data-label">Hotspot Detection</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="text-data-label font-data-label">Crime Prediction</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">warning</span>
+<span class="text-data-label font-data-label">Risk Analysis</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary-container bg-primary-container/20 border-l-4 border-primary transition-all duration-300 translate-x-1" href="#">
+<span class="material-symbols-outlined">route</span>
+<span class="text-data-label font-data-label">Patrol Optimization</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="text-data-label font-data-label">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-data-label font-data-label">Settings</span>
+</a>
+</nav>
+</aside>
+<!-- MAIN CONTENT CANVAS -->
+<main class="ml-[280px] pt-16 h-screen relative flex overflow-hidden">
+<!-- FLUID MAP BACKGROUND LAYER -->
+<div class="absolute inset-0 z-0 bg-[#0c0e12]">
+<div class="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, #3c494e 1px, transparent 0); background-size: 40px 40px;"></div>
+<div class="w-full h-full flex items-center justify-center p-8">
+<!-- Map Stylized Mockup -->
+<div class="relative w-full h-full border border-outline-variant/10 rounded-xl overflow-hidden shadow-2xl shadow-primary/5">
+<img class="w-full h-full object-cover filter brightness-50 contrast-125 saturate-50 grayscale" data-alt="A futuristic topographical dark-mode map of Chicago city streets, rendered in deep charcoal and navy. Thin, luminous neon cyan and green lines trace optimized patrol routes through the grid. High-tech tactical markers, diamond-shaped crime hotspots, and glowing hexagonal patrol zones create a complex intelligence overlay. The mood is precise, technical, and urgent." data-location="Chicago" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2IYwJXo1xKMZW7m2PaeKwlEF5IzDsgbBO4JWqMy5H_maKCdRBD5IikXAH8p7qWx5KrwoZ1-xjn7YroPJ3DCPDzFTyALA_tEBednzEA3gPpmO898MeIefIOQE_mGqxoUmgKzMoGuwL6lFlwhnF4kwyp9Dc_m4mixLMFvlUFUxkjUzSWP5GmEtII9F2byeM9n9Ja3fLXVvBlo1ROm82aA4zbUzzI0_j6eRT2WSqAV6uSJ5GYlxWKpM935z7MW6D4DPgb7rV0exerme_"/>
+<!-- SVG Overlay for glowing routes -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-80" viewbox="0 0 1000 1000">
+<path class="map-glow-line" d="M100,200 L300,200 L300,500 L600,500 L600,800" fill="none" stroke="#00fc92" stroke-dasharray="10,5" stroke-width="4"></path>
+<path class="map-glow-line" d="M800,100 L800,400 L500,400 L500,700 L200,700" fill="none" stroke="#00d1ff" stroke-width="4"></path>
+<circle class="animate-pulse" cx="300" cy="500" fill="#00fc92" r="8"></circle>
+<circle class="animate-pulse" cx="500" cy="400" fill="#00d1ff" r="8"></circle>
+</svg>
+<!-- Tactical HUD Elements on Map -->
+<div class="absolute top-6 left-6 p-4 surface-glass rounded-lg border border-primary/20 space-y-2">
+<div class="text-data-label font-data-label text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">my_location</span>
+                            SECTOR_07_ALPHA
+                        </div>
+<div class="text-[32px] font-data-value text-on-surface">94% <span class="text-data-label text-tertiary">EFFICIENCY</span></div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-[94%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- INTELLIGENCE LAYER: RIGHT SIDE PANELS -->
+<section class="relative z-10 w-[420px] ml-auto p-6 flex flex-col gap-6 overflow-y-auto bg-surface-container-low/40 backdrop-blur-md border-l border-outline-variant/30 h-full">
+<!-- HEADER INFO -->
+<div class="space-y-1">
+<h2 class="text-headline-md font-headline-md text-on-surface">Patrol Allocation</h2>
+<p class="text-data-label font-data-label text-on-surface-variant uppercase">Optimization Engine v4.2</p>
+</div>
+<!-- UNIT ALLOCATION CARDS -->
+<div class="space-y-3">
+<div class="flex justify-between items-center px-1">
+<span class="text-data-label font-data-label text-on-surface-variant">Active Units</span>
+<span class="text-data-label font-data-label text-primary">12 Ready</span>
+</div>
+<!-- Unit Card 1 -->
+<div class="surface-glass p-4 rounded-xl border-l-4 border-tertiary hover:border-primary transition-all">
+<div class="flex justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center border border-outline-variant/30">
+<span class="material-symbols-outlined text-tertiary">local_police</span>
+</div>
+<div>
+<div class="text-body-base font-bold text-on-surface">Officer J. Vance</div>
+<div class="text-data-label font-data-label text-on-surface-variant opacity-60">ID: #4492-B</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-data-label font-data-label text-primary">SECTOR A-12</div>
+<div class="text-[10px] text-tertiary font-bold px-1.5 py-0.5 rounded bg-tertiary/10 inline-block mt-1">OPTIMIZED</div>
+</div>
+</div>
+</div>
+<!-- Unit Card 2 -->
+<div class="surface-glass p-4 rounded-xl border-l-4 border-primary/40 hover:border-primary transition-all">
+<div class="flex justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center border border-outline-variant/30">
+<span class="material-symbols-outlined text-primary">local_police</span>
+</div>
+<div>
+<div class="text-body-base font-bold text-on-surface">Officer M. Chen</div>
+<div class="text-data-label font-data-label text-on-surface-variant opacity-60">ID: #8821-X</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-data-label font-data-label text-primary">SECTOR C-04</div>
+<div class="text-[10px] text-on-surface-variant font-bold px-1.5 py-0.5 rounded bg-surface-container-highest inline-block mt-1">RE-ROUTE</div>
+</div>
+</div>
+</div>
+<!-- Unit Card 3 -->
+<div class="surface-glass p-4 rounded-xl border-l-4 border-tertiary hover:border-primary transition-all">
+<div class="flex justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center border border-outline-variant/30">
+<span class="material-symbols-outlined text-tertiary">local_police</span>
+</div>
+<div>
+<div class="text-body-base font-bold text-on-surface">Officer S. Rodriguez</div>
+<div class="text-data-label font-data-label text-on-surface-variant opacity-60">ID: #1029-A</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-data-label font-data-label text-primary">SECTOR A-15</div>
+<div class="text-[10px] text-tertiary font-bold px-1.5 py-0.5 rounded bg-tertiary/10 inline-block mt-1">OPTIMIZED</div>
+</div>
+</div>
+</div>
+</div>
+<!-- CCTV PLACEMENT SUGGESTIONS -->
+<div class="mt-4 surface-glass rounded-xl border border-primary/20 overflow-hidden">
+<div class="p-4 bg-primary/10 border-b border-primary/20 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">videocam</span>
+<h3 class="text-data-label font-data-label font-bold tracking-wider">CCTV BLINDSPOT ANALYSIS</h3>
+</div>
+<div class="p-4 space-y-4">
+<div class="flex items-start gap-4">
+<div class="mt-1 w-2 h-2 rounded-full bg-secondary pulse-active"></div>
+<div class="flex-1">
+<div class="text-data-label font-data-label text-on-surface">Intersection of 5th &amp; Main</div>
+<div class="text-[12px] text-on-surface-variant mt-1">High probability of surveillance evasion identified. Suggested placement: N-East corner, 12ft height.</div>
+<button class="text-primary text-[12px] font-bold mt-2 hover:underline">MARK FOR INSTALLATION</button>
+</div>
+</div>
+<div class="h-px bg-outline-variant/20"></div>
+<div class="flex items-start gap-4">
+<div class="mt-1 w-2 h-2 rounded-full bg-secondary pulse-active"></div>
+<div class="flex-1">
+<div class="text-data-label font-data-label text-on-surface">Alleyway Sector B-3</div>
+<div class="text-[12px] text-on-surface-variant mt-1">Shadow mapping detects 40% coverage gap. IR-capable unit recommended.</div>
+<button class="text-primary text-[12px] font-bold mt-2 hover:underline">MARK FOR INSTALLATION</button>
+</div>
+</div>
+</div>
+</div>
+<!-- APPLY STRATEGY ACTION -->
+<div class="mt-auto pt-6">
+<button class="w-full bg-primary text-on-primary h-14 rounded-lg font-headline-md font-bold uppercase tracking-widest flex items-center justify-center gap-3 hover:brightness-110 active:scale-95 transition-all pulse-active group" id="applyBtn">
+<span class="material-symbols-outlined group-hover:rotate-12 transition-transform">bolt</span>
+                    Apply Strategy
+                </button>
+<p class="text-center text-[10px] text-on-surface-variant mt-3 uppercase tracking-tighter opacity-50">Authorized Personnel Only • COMMAND_SECURE_PROTO</p>
+</div>
+</section>
+<!-- FLOATING STATUS HUD -->
+<div class="absolute bottom-10 left-10 z-10 flex gap-4">
+<div class="surface-glass px-4 py-3 rounded-lg flex items-center gap-3 border border-tertiary/20">
+<span class="w-3 h-3 rounded-full bg-tertiary shadow-[0_0_10px_rgba(0,252,146,0.6)]"></span>
+<span class="font-data-label text-[12px] text-on-surface">PREDICTIVE STRIKE RATE: 88%</span>
+</div>
+<div class="surface-glass px-4 py-3 rounded-lg flex items-center gap-3 border border-secondary/20">
+<span class="material-symbols-outlined text-secondary text-[18px]">emergency</span>
+<span class="font-data-label text-[12px] text-on-surface">RESPONSE TIME: -12% OPTIMIZED</span>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interaction for applying strategy
+        const applyBtn = document.getElementById('applyBtn');
+        applyBtn.addEventListener('click', () => {
+            applyBtn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> UPLOADING PROTOCOLS...';
+            applyBtn.classList.remove('bg-primary');
+            applyBtn.classList.add('bg-tertiary', 'text-on-tertiary');
+            
+            setTimeout(() => {
+                applyBtn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> STRATEGY DEPLOYED';
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    applyBtn.innerHTML = '<span class="material-symbols-outlined">bolt</span> Apply Strategy';
+                    applyBtn.classList.remove('bg-tertiary', 'text-on-tertiary');
+                    applyBtn.classList.add('bg-primary', 'text-on-primary');
+                }, 3000);
+            }, 1500);
+        });
+
+        // Hover effect for unit cards to highlight "map" markers (simulated)
+        document.querySelectorAll('.surface-glass.p-4.rounded-xl').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateX(4px) scale(1.02)';
+                card.style.boxShadow = '0 10px 30px -10px rgba(164, 230, 255, 0.2)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateX(0) scale(1)';
+                card.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body></html>

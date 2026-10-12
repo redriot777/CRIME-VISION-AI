@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CrimeVision AI | Live Crime Map</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .glow-border-primary {
+            box-shadow: inset 0 0 0 1px rgba(164, 230, 255, 0.2), 0 0 15px rgba(164, 230, 255, 0.1);
+        }
+        .glow-border-secondary {
+            box-shadow: inset 0 0 0 1px rgba(255, 179, 174, 0.3), 0 0 20px rgba(255, 179, 174, 0.15);
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 179, 174, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 179, 174, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 179, 174, 0); }
+        }
+        .animate-pulse-red {
+            animation: pulse-red 2s infinite;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#859399",
+                        "secondary": "#ffb3ae",
+                        "surface-bright": "#37393e",
+                        "tertiary-fixed": "#5bffa1",
+                        "surface": "#111318",
+                        "surface-container": "#1e2024",
+                        "on-primary": "#003543",
+                        "on-tertiary-fixed": "#00210e",
+                        "on-secondary-fixed": "#410004",
+                        "surface-dim": "#111318",
+                        "inverse-surface": "#e2e2e8",
+                        "on-secondary-container": "#ffb3ad",
+                        "primary-fixed": "#b7eaff",
+                        "tertiary-fixed-dim": "#00e383",
+                        "on-tertiary": "#00391d",
+                        "surface-container-highest": "#333539",
+                        "secondary-fixed": "#ffdad7",
+                        "on-primary-container": "#00566a",
+                        "surface-container-high": "#282a2e",
+                        "inverse-primary": "#00677f",
+                        "surface-container-low": "#1a1c20",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#333539",
+                        "on-error": "#690005",
+                        "on-primary-fixed": "#001f28",
+                        "secondary-container": "#a90219",
+                        "on-surface-variant": "#bbc9cf",
+                        "on-primary-fixed-variant": "#004e60",
+                        "primary-container": "#00d1ff",
+                        "error-container": "#93000a",
+                        "on-tertiary-container": "#005b31",
+                        "surface-tint": "#4cd6ff",
+                        "outline-variant": "#3c494e",
+                        "secondary-fixed-dim": "#ffb3ae",
+                        "on-background": "#e2e2e8",
+                        "inverse-on-surface": "#2f3035",
+                        "primary-fixed-dim": "#4cd6ff",
+                        "primary": "#a4e6ff",
+                        "background": "#111318",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed-variant": "#930014",
+                        "on-secondary": "#68000b",
+                        "on-surface": "#e2e2e8",
+                        "tertiary": "#00fc92",
+                        "tertiary-container": "#00dc7f",
+                        "on-tertiary-fixed-variant": "#00522c",
+                        "surface-container-lowest": "#0c0e12"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "sidebar-width": "280px",
+                        "gutter": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "data-value": ["JetBrains Mono"],
+                        "display-lg": ["Inter"],
+                        "body-base": ["Inter"],
+                        "data-label": ["JetBrains Mono"],
+                        "headline-md-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "data-value": ["18px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-base": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400"}],
+                        "data-label": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-md-mobile": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-base overflow-hidden">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/70 dark:bg-surface/70 backdrop-blur-xl border-b border-outline-variant/30">
+<div class="flex items-center gap-4">
+<span class="text-headline-md font-headline-md font-bold tracking-tighter text-primary dark:text-primary">CrimeVision AI</span>
+<div class="h-6 w-px bg-outline-variant/50 mx-2"></div>
+<span class="text-primary dark:text-primary font-bold font-body-base">Chicago</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-2">
+<button class="p-2 rounded-full hover:bg-primary/10 transition-colors duration-200 text-on-surface-variant active:scale-95">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+</button>
+<button class="p-2 rounded-full hover:bg-primary/10 transition-colors duration-200 text-on-surface-variant active:scale-95">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+</button>
+<button class="p-2 rounded-full hover:bg-primary/10 transition-colors duration-200 text-on-surface-variant active:scale-95">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+<div class="flex items-center gap-3 pl-4 border-l border-outline-variant/30">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary/30">
+<img class="w-full h-full object-cover" data-alt="A close-up professional portrait of a senior police commander in a futuristic dark blue uniform with tactical gear. The lighting is dramatic and cool-toned, with subtle cyan rim lighting against a blurred technological background. The style is hyper-realistic and authoritative, reflecting a high-stakes command center environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu0HTmgwgGUX87EVZAOX0fMWSH698PVjMwE7bPwkGuxtPdyHmP7TzuHgykgTXyjJ3Fy32o1wDwEKxPi1HLkfsJ9dPyqCtr9mWaGJGaetS1r7W5DRAbq1N7hBQyAE7Cxz-2XRE_OKlplkyZfA3HZEiinzK-4QediUqxhWdAcQShRP74CTFGBtld1Yj9L1fCwqkv2hEpSE1cyO-ZY12l6QBX3q0lDtt-AyIZuFUVa1pkMschkyNM0hynOjMhI-SZXRunp-bDuLGf6dyv"/>
+</div>
+<span class="text-data-label font-data-label text-on-surface">Chief Officer</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-[280px] z-40 flex flex-col pt-20 pb-8 bg-surface-container-low/70 dark:bg-surface-container-low/70 backdrop-blur-xl border-r border-outline-variant/30 hidden md:flex">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 flex items-center justify-center bg-primary-container/20 rounded-lg border border-primary/30">
+<span class="material-symbols-outlined text-primary" data-icon="security">security</span>
+</div>
+<div>
+<h2 class="text-primary font-headline-md-mobile uppercase tracking-widest text-sm">COMMAND</h2>
+<p class="text-[10px] text-on-surface-variant font-data-label uppercase tracking-tighter">Active Session</p>
+</div>
+</div>
+</div>
+<div class="flex-1 space-y-1 px-4 overflow-y-auto hide-scrollbar">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200" data-icon="dashboard">dashboard</span>
+<span class="text-data-label font-data-label">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary-container bg-primary-container/20 border-l-4 border-primary transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="text-data-label font-data-label">Live Crime Map</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200" data-icon="local_fire_department">local_fire_department</span>
+<span class="text-data-label font-data-label">Hotspot Detection</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200" data-icon="psychology">psychology</span>
+<span class="text-data-label font-data-label">Crime Prediction</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200" data-icon="warning">warning</span>
+<span class="text-data-label font-data-label">Risk Analysis</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200" data-icon="route">route</span>
+<span class="text-data-label font-data-label">Patrol Optimization</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200" data-icon="assessment">assessment</span>
+<span class="text-data-label font-data-label">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-300 group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200" data-icon="settings">settings</span>
+<span class="text-data-label font-data-label">Settings</span>
+</a>
+</div>
+</nav>
+<!-- Main Content: Full-screen interactive map -->
+<main class="ml-0 md:ml-[280px] h-screen pt-16 relative">
+<!-- Interactive Map Background Shader -->
+<div class="absolute inset-0 z-0 bg-surface-container-lowest overflow-hidden">
+
+<!-- Map Decorative Layers (Simulated GIS) -->
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, #4cd6ff 1px, transparent 0); background-size: 40px 40px;"></div>
+<!-- Simulated GIS Elements -->
+<div class="absolute top-[30%] left-[40%] w-[200px] h-[200px] border border-primary/20 rounded-full flex items-center justify-center animate-pulse">
+<div class="w-full h-px bg-primary/10 rotate-45"></div>
+<div class="w-full h-px bg-primary/10 -rotate-45"></div>
+</div>
+<!-- Crime Marker Example -->
+<div class="absolute top-[45%] left-[55%] flex flex-col items-center">
+<div class="w-4 h-4 bg-secondary rotate-45 glow-border-secondary animate-pulse-red"></div>
+<div class="mt-2 bg-surface-container-high/90 px-2 py-1 rounded border border-secondary/50 backdrop-blur-md">
+<span class="text-[10px] font-data-label text-secondary">ACTIVE BURGLARY</span>
+</div>
+</div>
+</div>
+<!-- Layer Toggle (Top Right) -->
+<div class="absolute top-6 right-8 z-20 flex flex-col gap-2">
+<div class="glass-panel bg-surface-container-low/70 border border-outline-variant/30 rounded-xl p-1 flex flex-col gap-1">
+<button class="flex items-center gap-3 px-4 py-2 rounded-lg bg-primary text-on-primary font-data-label text-xs uppercase transition-all duration-200">
+<span class="material-symbols-outlined text-[18px]" data-icon="layers">layers</span>
+                    Heatmap
+                </button>
+<button class="flex items-center gap-3 px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant/50 font-data-label text-xs uppercase transition-all duration-200">
+<span class="material-symbols-outlined text-[18px]" data-icon="online_prediction">online_prediction</span>
+                    Prediction
+                </button>
+<button class="flex items-center gap-3 px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant/50 font-data-label text-xs uppercase transition-all duration-200">
+<span class="material-symbols-outlined text-[18px]" data-icon="minor_crash">minor_crash</span>
+                    Patrols
+                </button>
+</div>
+</div>
+<!-- Left Floating Panel: AI Analytics Summary -->
+<div class="absolute top-6 left-8 z-20 w-72 flex flex-col gap-4">
+<div class="glass-panel bg-surface-container-low/70 border border-outline-variant/30 rounded-xl overflow-hidden glow-border-primary">
+<div class="bg-primary/10 px-4 py-3 border-b border-outline-variant/30 flex justify-between items-center">
+<h3 class="text-data-label font-data-label text-primary uppercase text-xs">AI Risk Assessment</h3>
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="bolt">bolt</span>
+</div>
+<div class="p-4 space-y-6">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-[10px] font-data-label text-on-surface-variant uppercase">Current Risk Score</p>
+<div class="flex items-baseline gap-1">
+<span class="text-display-lg text-3xl font-display-lg text-secondary">78</span>
+<span class="text-data-label text-xs text-secondary/70 uppercase">High</span>
+</div>
+</div>
+<div class="w-16 h-16 rounded-full border-4 border-secondary/20 border-t-secondary animate-spin-slow" style="animation: spin 3s linear infinite;"></div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<span class="text-data-label text-xs text-on-surface-variant uppercase">Active Hotspots</span>
+<span class="text-data-value text-sm text-primary">12</span>
+</div>
+<div class="w-full bg-surface-variant/50 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[65%]"></div>
+</div>
+<div class="flex justify-between items-center pt-2">
+<span class="text-data-label text-xs text-on-surface-variant uppercase">Response Time Avg</span>
+<span class="text-data-value text-sm text-tertiary">4.2m</span>
+</div>
+<div class="w-full bg-surface-variant/50 h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-[88%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Mini Alert Widget -->
+<div class="glass-panel bg-secondary-container/20 border border-secondary/30 rounded-xl p-4 flex gap-4 items-start glow-border-secondary">
+<span class="material-symbols-outlined text-secondary animate-pulse" data-icon="warning">warning</span>
+<div>
+<h4 class="text-data-label text-xs font-bold text-secondary uppercase">Sector B Escalation</h4>
+<p class="text-body-base text-[11px] text-on-surface-variant mt-1 leading-relaxed">Cluster of unusual movement detected in warehouse district. 15% probability surge in theft.</p>
+</div>
+</div>
+</div>
+<!-- Bottom Bar: Real-time Incident Feed -->
+<div class="absolute bottom-6 left-8 right-8 z-20 flex flex-col md:flex-row gap-6 items-end">
+<div class="flex-1 w-full glass-panel bg-surface-container-low/70 border border-outline-variant/30 rounded-xl overflow-hidden h-14 flex items-center px-4 gap-4">
+<div class="flex items-center gap-2 bg-error/10 px-3 py-1 rounded border border-error/20">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<span class="text-data-label text-[10px] text-error font-bold uppercase whitespace-nowrap">LIVE FEED</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<div class="flex gap-12 animate-marquee whitespace-nowrap" id="incident-feed">
+<div class="flex items-center gap-3">
+<span class="text-data-label text-xs text-on-surface-variant uppercase">14:22</span>
+<span class="text-body-base text-sm text-on-surface font-medium">District 11: Reported Burglary in progress at 4022 Oak St.</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-data-label text-xs text-on-surface-variant uppercase">14:18</span>
+<span class="text-body-base text-sm text-on-surface font-medium">Sector G: Dispatching Unit 12 for welfare check.</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-data-label text-xs text-on-surface-variant uppercase">14:15</span>
+<span class="text-body-base text-sm text-on-surface font-medium">Highway 4: High-speed pursuit initiated north-bound.</span>
+</div>
+<!-- Repeated for loop effect -->
+<div class="flex items-center gap-3">
+<span class="text-data-label text-xs text-on-surface-variant uppercase">14:22</span>
+<span class="text-body-base text-sm text-on-surface font-medium">District 11: Reported Burglary in progress at 4022 Oak St.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Recommendation Card (Bottom Right) -->
+<div class="w-full md:w-80 glass-panel bg-primary-container/10 border border-primary/40 rounded-xl p-5 glow-border-primary relative overflow-hidden group">
+<!-- Background decoration -->
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-8xl" data-icon="psychology">psychology</span>
+</div>
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="smart_toy">smart_toy</span>
+<h3 class="text-data-label text-xs font-bold text-primary uppercase tracking-widest">AI Recommendation</h3>
+</div>
+<p class="text-body-base text-sm text-on-surface leading-snug">
+<span class="text-primary font-bold">Priority Optimization:</span> Redirect Patrol Unit 4 to Sector B for Hotspot Mitigation.
+                </p>
+<div class="mt-4 flex gap-2">
+<button class="flex-1 py-2 rounded bg-primary text-on-primary text-[10px] font-bold uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all">
+                        Accept &amp; Dispatch
+                    </button>
+<button class="px-3 py-2 rounded border border-outline-variant/50 text-on-surface-variant text-[10px] font-bold uppercase hover:bg-surface-variant/30 transition-all">
+                        Ignore
+                    </button>
+</div>
+</div>
+</div>
+<!-- Decorative UI elements for GIS feel -->
+<div class="absolute bottom-8 right-8 pointer-events-none opacity-30 flex flex-col items-end gap-1">
+<span class="text-data-label text-[10px] font-data-label">COORD: 41.8781° N, 87.6298° W</span>
+<span class="text-data-label text-[10px] font-data-label">RENDER: WEBGL_SHADER_MAP_PROX_V4</span>
+<span class="text-data-label text-[10px] font-data-label">SYSTEM_STATUS: NOMINAL</span>
+</div>
+</main>
+<style>
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            animation: marquee 30s linear infinite;
+        }
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+<script>
+        // Simple micro-interaction for markers or other UI elements
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('CrimeVision AI Command Interface Initialized');
+            
+            // Add hover glow to buttons
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.addEventListener('mouseenter', () => {
+                    btn.classList.add('glow-border-primary');
+                });
+                btn.addEventListener('mouseleave', () => {
+                    btn.classList.remove('glow-border-primary');
+                });
+            });
+        });
+    </script>
+</body></html>
